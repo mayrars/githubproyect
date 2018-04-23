@@ -1,9 +1,9 @@
-const express  = require('express')
+const express = require('express')
 const request = require('request')
 
 var app = express()
 var options = {
-    headers: {'user-agent': 'node.js'}
+    headers: { 'user-agent': 'node.js' }
 };
 
 
@@ -13,24 +13,38 @@ var serviceAccount = require("./github-proyect-firebase-adminsdk-43ns1-fbc24da33
 
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://github-proyect.firebaseio.com"
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://github-proyect.firebaseio.com"
 });
 
 var defaultDatabase = admin.database()
 var ref = defaultDatabase.ref('/')
 
-app.get("/david",(req, res) => {
-
-    request('https://api.github.com/users/DavidHackro',options,(error, response, body)=>{
-        saveuser(JSON.parse(body))
-        res.end(JSON.stringify(body))
-    })
+app.get("/getUser/:id", (req, res) => {
+    userdata(req.params.id).then(
+        repos(req.params.id)
+    )
 })
 
-function saveuser(user){
+function userdata(userid) {
+    return new Promise((resolve, reject)=>{
+        request(`https://api.github.com/users/${userid}`, options, (error, response, body) => {
+            return resolve(body)
+        })
+    })
+}
+
+function repos(userid) {
+    return new Promise((resolve, reject)=>{
+        request(`https://api.github.com/users/${userid}/repos`, options, (error, response, body) => {
+            return resolve(body)
+        })
+    })
+}
+
+function saveuser(user) {
     ref.push(user)
 }
-app.listen(process.env.PORT || 3000, () =>{
+app.listen(process.env.PORT || 3000, () => {
 
 })
