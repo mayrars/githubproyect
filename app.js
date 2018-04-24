@@ -20,24 +20,39 @@ admin.initializeApp({
 var defaultDatabase = admin.database()
 var ref = defaultDatabase.ref('/')
 
-app.get("/getUser/:id", (req, res) => {
-    userdata(req.params.id).then(
-        repos(req.params.id)
-    )
+app.get("/getUser/:id", (req, res, next) => {
+    res.setHeader('Content-Type', 'text/json')
+    userdata(req.params.id)
+    .then(repos)
+    .then(response=>{
+        saveuser(response)
+        res.send(JSON.stringify(response))
+    }).catch(error =>{
+        res.status(500)
+        res.send(JSON.stringify(error))
+    })
+
 })
 
 function userdata(userid) {
     return new Promise((resolve, reject)=>{
         request(`https://api.github.com/users/${userid}`, options, (error, response, body) => {
-            return resolve(body)
+            if(error)
+                return reject(error)
+            return resolve(JSON.parse(body))
         })
     })
 }
 
-function repos(userid) {
+function repos(res) {
     return new Promise((resolve, reject)=>{
-        request(`https://api.github.com/users/${userid}/repos`, options, (error, response, body) => {
-            return resolve(body)
+        request(`https://api.github.com/users/${res.login}/repos`, options, (error, response, body) => {
+            if(error)
+                return reject(error)
+            var user = {}
+            user.user = res
+            user.repos = JSON.parse(body)
+            return resolve(user)
         })
     })
 }
