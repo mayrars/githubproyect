@@ -20,7 +20,7 @@ admin.initializeApp({
 var defaultDatabase = admin.database()
 var ref = defaultDatabase.ref('/')
 
-app.get("/getUser/:id", (req, res, next) => {
+app.get("/:id", (req, res, next) => {
     res.setHeader('Content-Type', 'text/json')
     userdata(req.params.id)
     .then(repos)
